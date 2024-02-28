@@ -1,6 +1,6 @@
 <idea-plugin>
-    <id>com.suusan2go.kotlin-fill-class</id>
-    <name>Kotlin Fill Class</name>
+    <id>com.suusan2go.kotlin-kotest-arbs-fill</id>
+    <name>Kotlin Kotest Arbs Fill</name>
     <version>1.0</version>
     <vendor email="ksuzuki180@gmail.com" url="https://github.com/suusan2go">suusan2go</vendor>
 
@@ -29,22 +29,6 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillDummyValuesInspection"
-                         groupPath="Kotlin"
-                         groupName="Fill class"
-                         enabledByDefault="true"
-                         level="INFORMATION"
-                         language="kotlin"
-                         displayName="Fill with dummy values" />
-
-        <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillVariablesOfSameNameInspection"
-                         groupPath="Kotlin"
-                         groupName="Fill class"
-                         enabledByDefault="true"
-                         level="INFORMATION"
-                         language="kotlin"
-                         displayName="Fill class constructor with variables of the same name" />
-
         <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillEmptyValuesInspection"
                          groupPath="Kotlin"
                          groupName="Fill class"

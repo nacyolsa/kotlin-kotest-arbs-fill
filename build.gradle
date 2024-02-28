@@ -20,7 +20,7 @@ targetCompatibility = JavaVersion.VERSION_11
 intellij {
     version = '2023.1.4'
     plugins = ['Kotlin', 'java']
-    pluginName = 'kotlin-fill-class'
+    pluginName = 'kotlin-kotest-arbs-fill'
     updateSinceUntilBuild = false
     publishPlugin {
         token = System.getenv('TOKEN')
@@ -30,7 +30,7 @@ intellij {
     }
 }
 
-group 'com.github.suusan2go.kotlin-fill-class'
+group 'com.github.suusan2go.kotlin-kotest-arbs-fill'
 version '1.0.23'
 
 repositories {

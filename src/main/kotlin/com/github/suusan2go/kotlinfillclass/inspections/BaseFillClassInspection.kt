@@ -23,11 +23,11 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.core.CollectingNameValidator
 import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.imports.importableFqName
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.inspections.findExistingEditor
 import org.jetbrains.kotlin.idea.intentions.callExpression
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -65,7 +65,7 @@ abstract class BaseFillClassInspection(
     @JvmField var withoutDefaultArguments: Boolean = false,
     @JvmField var withTrailingComma: Boolean = false,
     @JvmField var putArgumentsOnSeparateLines: Boolean = true,
-    @JvmField var movePointerToEveryArgument: Boolean = true,
+    @JvmField var movePointerToEveryArgument: Boolean = false,
 ) : AbstractKotlinInspection() {
     override fun buildVisitor(
         holder: ProblemsHolder,
@@ -133,7 +133,7 @@ private fun analyze(call: KtCallElement): List<FunctionDescriptor> {
     val argumentSize = call.valueArguments.size
     return descriptors.filter { descriptor ->
         descriptor !is JavaCallableMemberDescriptor &&
-            descriptor.valueParameters.filterNot { it.isVararg }.size > argumentSize
+                descriptor.valueParameters.filterNot { it.isVararg }.size > argumentSize
     }
 }
 
@@ -326,13 +326,13 @@ open class FillClassFix(
             KotlinBuiltIns.isDouble(type) -> "0.0"
             KotlinBuiltIns.isFloat(type) -> "0.0f"
             KotlinBuiltIns.isInt(type) ||
-                KotlinBuiltIns.isLong(type) ||
-                KotlinBuiltIns.isShort(type) -> "positiveInt().bind()" //"0"
+                    KotlinBuiltIns.isLong(type) ||
+                    KotlinBuiltIns.isShort(type) -> "positiveInt().bind()" //"0"
 
             KotlinBuiltIns.isCollectionOrNullableCollection(type) -> "arrayOf()"
             KotlinBuiltIns.isNullableAny(type) -> "null"
             KotlinBuiltIns.isCharSequence(type) ||
-                KotlinBuiltIns.isString(type) -> "string().bind()"  //"\"\""
+                    KotlinBuiltIns.isString(type) -> "string().bind()"  //"\"\""
 
             KotlinBuiltIns.isListOrNullableList(type) -> "listOf()"
             KotlinBuiltIns.isSetOrNullableSet(type) -> "setOf()"
