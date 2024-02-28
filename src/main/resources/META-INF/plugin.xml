@@ -1,0 +1,56 @@
+<idea-plugin>
+    <id>com.suusan2go.kotlin-fill-class</id>
+    <name>Kotlin Fill Class</name>
+    <version>1.0</version>
+    <vendor email="ksuzuki180@gmail.com" url="https://github.com/suusan2go">suusan2go</vendor>
+
+    <description><![CDATA[
+        <p>Intellij plugin that provide intention action for empty constructor or function to fill property with default value.</p>
+        <a target="_blank" href="https://user-images.githubusercontent.com/8841470/59397528-e61a4380-8dc7-11e9-9684-d82d225316fe.gif"><img src="https://user-images.githubusercontent.com/8841470/59397528-e61a4380-8dc7-11e9-9684-d82d225316fe.gif" alt="fill-class" style="max-width:100%;"></a></p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+      <h2>1.0.23</h2>
+      <ul>
+        <li>
+          Add "Fill class constructor with variables of the same name" inspection
+          <ul>
+            <li>This is useful to convert classes from data layer to domain layer</li>
+          </ul>
+        </li>
+      </ul>
+    ]]>
+    </change-notes>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="221.*"/>
+
+    <depends>com.intellij.modules.lang</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillDummyValuesInspection"
+                         groupPath="Kotlin"
+                         groupName="Fill class"
+                         enabledByDefault="true"
+                         level="INFORMATION"
+                         language="kotlin"
+                         displayName="Fill with dummy values" />
+
+        <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillVariablesOfSameNameInspection"
+                         groupPath="Kotlin"
+                         groupName="Fill class"
+                         enabledByDefault="true"
+                         level="INFORMATION"
+                         language="kotlin"
+                         displayName="Fill class constructor with variables of the same name" />
+
+        <localInspection implementationClass="com.github.suusan2go.kotlinfillclass.inspections.FillEmptyValuesInspection"
+                         groupPath="Kotlin"
+                         groupName="Fill class"
+                         enabledByDefault="true"
+                         level="INFORMATION"
+                         language="kotlin"
+                         displayName="Fill with empty values" />
+    </extensions>
+</idea-plugin>
