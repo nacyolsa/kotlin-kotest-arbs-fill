@@ -7,11 +7,7 @@ import javax.swing.JComponent
 class FillEmptyValuesInspection : BaseFillClassInspection() {
 
     override fun getConstructorPromptTitle(): String {
-        return "Fill class constructor"
-    }
-
-    override fun getFunctionPromptTitle(): String {
-        return "Fill function"
+        return "Fill class using Arbs"
     }
 
     override fun createOptionsPanel(): JComponent {

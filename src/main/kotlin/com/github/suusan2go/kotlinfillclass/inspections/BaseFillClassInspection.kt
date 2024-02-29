@@ -58,6 +58,8 @@ import org.jetbrains.kotlin.resolve.scopes.computeAllNames
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isEnum
 import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.jetbrains.kotlin.utils.ifEmpty
 
 abstract class BaseFillClassInspection(
@@ -70,14 +72,11 @@ abstract class BaseFillClassInspection(
     override fun buildVisitor(
         holder: ProblemsHolder,
         isOnTheFly: Boolean,
-    ) = valueArgumentListVisitor(fun(element: KtValueArgumentList) {
-        val callElement = element.parent as? KtCallElement ?: return
-        val descriptors = analyze(callElement).ifEmpty { return }
-        val description = if (descriptors.any { descriptor -> descriptor is ClassConstructorDescriptor }) {
-            getConstructorPromptTitle()
-        } else {
-            getFunctionPromptTitle()
-        }
+    ) = valueArgumentListVisitor { element ->
+        val callElement = element.parent as? KtCallElement ?: return@valueArgumentListVisitor
+        val descriptors = analyze(callElement).ifEmpty { return@valueArgumentListVisitor }
+        descriptors.any { descriptor -> descriptor is ClassConstructorDescriptor }.ifFalse { return@valueArgumentListVisitor }
+        val description = getConstructorPromptTitle()
         val fix = createFillClassFix(
             description = description,
             withoutDefaultValues = withoutDefaultValues,
@@ -87,10 +86,9 @@ abstract class BaseFillClassInspection(
             movePointerToEveryArgument = movePointerToEveryArgument,
         )
         holder.registerProblem(element, description, fix)
-    })
+    }
 
     abstract fun getConstructorPromptTitle(): String
-    abstract fun getFunctionPromptTitle(): String
 
     open fun createFillClassFix(
         description: String,
