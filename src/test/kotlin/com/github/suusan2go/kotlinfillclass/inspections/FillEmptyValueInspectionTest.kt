@@ -855,7 +855,7 @@ class FillEmptyValueInspectionTest : BasePlatformTestCase() {
     private fun doAvailableTest(
         before: String,
         after: String,
-        problemDescription: String = "Fill class constructor",
+        problemDescription: String = "Fill class using Arbs",
         dependencies: List<String> = emptyList(),
         javaDependencies: List<JavaDependency> = emptyList(),
         withoutDefaultValues: Boolean = false,
@@ -907,7 +907,7 @@ class FillEmptyValueInspectionTest : BasePlatformTestCase() {
 
     private fun doHighlighting(
         code: String,
-        problemDescription: String = "Fill class constructor",
+        problemDescription: String = "Fill class using Arbs",
         dependencies: List<String>,
         javaDependencies: List<JavaDependency>,
         withoutDefaultValues: Boolean,

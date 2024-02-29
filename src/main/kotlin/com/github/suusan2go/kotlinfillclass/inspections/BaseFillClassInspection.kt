@@ -24,8 +24,6 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.idea.core.CollectingNameValidator
-import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.inspections.findExistingEditor
@@ -33,7 +31,6 @@ import org.jetbrains.kotlin.idea.intentions.callExpression
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.textRangeIn
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.load.java.descriptors.JavaCallableMemberDescriptor
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -51,15 +48,12 @@ import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComme
 import org.jetbrains.kotlin.psi.valueArgumentListVisitor
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
-import org.jetbrains.kotlin.resolve.scopes.computeAllNames
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.asSimpleType
 import org.jetbrains.kotlin.types.typeUtil.isEnum
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.jetbrains.kotlin.utils.ifEmpty
 
 abstract class BaseFillClassInspection(
@@ -319,57 +313,35 @@ open class FillClassFix(
     protected open fun fillValue(descriptor: ValueParameterDescriptor): String? {
         val type = descriptor.type
         return when {
-            KotlinBuiltIns.isBoolean(type) -> "boolean().bind()" //"false"
-            KotlinBuiltIns.isChar(type) -> "char().bind()"  //"''"
-            KotlinBuiltIns.isDouble(type) -> "0.0"
-            KotlinBuiltIns.isFloat(type) -> "0.0f"
-            KotlinBuiltIns.isInt(type) ||
-                    KotlinBuiltIns.isLong(type) ||
-                    KotlinBuiltIns.isShort(type) -> "positiveInt().bind()" //"0"
-
-            KotlinBuiltIns.isCollectionOrNullableCollection(type) -> "arrayOf()"
-            KotlinBuiltIns.isNullableAny(type) -> "null"
+            KotlinBuiltIns.isBoolean(type) -> "boolean()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isChar(type) -> "char()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isDouble(type) -> "positiveDouble()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isFloat(type) -> "positiveFloat()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isInt(type) -> "positiveInt()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isLong(type) -> "positiveLong()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isShort(type) -> "positiveShort()".appendOrNullIfNullable(type)
             KotlinBuiltIns.isCharSequence(type) ||
-                    KotlinBuiltIns.isString(type) -> "string().bind()"  //"\"\""
+                    KotlinBuiltIns.isString(type) -> "string()".appendOrNullIfNullable(type)
 
-            KotlinBuiltIns.isListOrNullableList(type) -> "listOf()"
-            KotlinBuiltIns.isSetOrNullableSet(type) -> "setOf()"
-            KotlinBuiltIns.isMapOrNullableMap(type) -> "mapOf()"
-            type.isFunctionType -> type.lambdaDefaultValue()
-            type.isEnum() -> type.firstEnumValueOrNull()
-            type.isMarkedNullable -> "null"
+            // TODO add support for collections
+            KotlinBuiltIns.isListOrNullableList(type) -> "listOf()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isSetOrNullableSet(type) -> "setOf()".appendOrNullIfNullable(type)
+            KotlinBuiltIns.isMapOrNullableMap(type) -> "mapOf()".appendOrNullIfNullable(type)
+            type.isEnum() -> "enum<${type.asSimpleType()}>()".appendOrNullIfNullable(type)
+            // TODO add support for other objects by converting User to user().bind()
+            KotlinBuiltIns.isAny(type) -> {
+                val arbNameForCustomClass = type.asSimpleType().toString().replaceFirstChar { it.lowercaseChar() }
+                "$arbNameForCustomClass()".appendOrNullIfNullable(type)
+            } // TODO requires test
+
             else -> null
-        }
+        }?.appendBindSuffix()
     }
 
-    private fun KotlinType.lambdaDefaultValue(): String = buildString {
-        append("{")
-        if (arguments.size > 2) {
-            val validator = CollectingNameValidator()
-            val lambdaParameters = arguments.dropLast(1).joinToString(postfix = "->") {
-                val type = it.type
-                val name = KotlinNameSuggester.suggestNamesByType(type, validator, "param")[0]
-                validator.addName(name)
-                val typeText = type.constructor.declarationDescriptor?.importableFqName?.asString() ?: type.toString()
-                val nullable = if (type.isMarkedNullable) "?" else ""
-                "$name: $typeText$nullable"
-            }
-            append(lambdaParameters)
-        }
-        append("}")
-    }
+    private fun String.appendBindSuffix() = "$this.bind()"
 
-    private fun KotlinType.firstEnumValueOrNull(): String? {
-        val names = this.memberScope.computeAllNames() ?: return null
-        for (name in names) {
-            val descriptor = this.memberScope.getContributedClassifier(name, NoLookupLocation.FROM_IDE)
-                ?: continue
-            if (descriptor.defaultType.supertypes().contains(this)) {
-                return descriptor.fqNameOrNull()?.asString() ?: continue
-            }
-        }
-        return null
-    }
+    private fun String.appendOrNullIfNullable(type: KotlinType) =
+        if (type.isMarkedNullable) "$this.orNull()" else this
 
     private inline fun <reified T : KtElement> KtValueArgumentList.findElementsInArgsByType(argStartOffset: Int): List<T> {
         return this.arguments.subList(argStartOffset, this.arguments.size).flatMap { argument ->
