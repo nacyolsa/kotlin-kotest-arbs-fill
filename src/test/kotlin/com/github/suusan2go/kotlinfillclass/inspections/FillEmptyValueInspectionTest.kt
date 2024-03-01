@@ -29,13 +29,15 @@ class FillEmptyValueInspectionTest : BasePlatformTestCase() {
     fun `test autofill with arbs`() {
         doAvailableTest(
             """
-            class User(val name: String, val age: Int, val pass: CharSequence)
+            class Nested(val nestedName: String)
+            class User(val nested: Nested, val name: String, val age: Int, val pass: CharSequence)
             fun test() {
                 User(<caret>)
             }
         """,
             """
-            class User(val name: String, val age: Int, val pass: CharSequence)
+            class Nested(val nestedName: String)
+            class User(val nested: Nested, val name: String, val age: Int, val pass: CharSequence)
             fun test() {
                 User(name = string().bind(), age = positiveInt().bind(), pass = string().bind())
             }
