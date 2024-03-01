@@ -221,6 +221,7 @@ open class FillClassFix(
             KotlinBuiltIns.isMapOrNullableMap(type) -> "mapOf()".appendOrNullIfNullable(type)
             type.isEnum() -> "enum<${type.asSimpleType()}>()".appendOrNullIfNullable(type)
             type.isFunctionType -> "{}"
+            // FIXME something doesn't work for nullable types
             else ->             {
                 val arbNameForCustomClass = type.asSimpleType().toString().replaceFirstChar { it.lowercaseChar() }
                 "$arbNameForCustomClass()".appendOrNullIfNullable(type)
