@@ -30,7 +30,7 @@ class FillEmptyValueInspectionTest : BasePlatformTestCase() {
         doAvailableTest(
             """
             class Nested(val nestedName: String)
-            class User(val nested: Nested, val name: String, val age: Int, val pass: CharSequence)
+            class User(val nested: Nested?, val name: String, val age: Int, val pass: CharSequence)
             fun test() {
                 User(<caret>)
             }

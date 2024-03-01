@@ -224,7 +224,7 @@ open class FillClassFix(
             // FIXME something doesn't work for nullable types
             else ->             {
                 val arbNameForCustomClass = type.asSimpleType().toString().replaceFirstChar { it.lowercaseChar() }
-                "$arbNameForCustomClass()".appendOrNullIfNullable(type)
+                "$arbNameForCustomClass()".replaceFirst("?", "").appendOrNullIfNullable(type)
             }
         }.appendBindSuffix()
     }
